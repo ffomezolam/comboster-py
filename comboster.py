@@ -6,6 +6,12 @@ helper module with functions for extracting combinations from input sequences
 import random
 from itertools import permutations
 
+# GLOBAL
+
+# maximum items to return when doing random generation, based on testing of
+# random generation algorithm
+MAX_ITEM_LIMIT = 100_000
+
 # GENERAL
 
 def all(seq, min=2):
@@ -63,41 +69,73 @@ def seq_to_end(seq, min=2):
 
 # RANDOM
 
-def random_unique(seq, limit: int = 0, min=2, max_tries = 100, seed=None):
+def random_unique(seq, limit: int = 0, min=2, *, max_tries = 100, seed = None, alg_cutoff = 8):
     "Return random combinations of minimum [min] length without replacement or repeat"
 
     random.seed(seed)
 
-    # if no limit specified, limit is total number of possible combinations
-    if not limit: limit = len(list(all(seq, min)))
+    if min >= len(seq):
+        raise IndexError(f"Minimum combo length ({min}) exceeds sequence length ({len(seq)})")
 
-    slen = max = len(seq)
-    tries = 0
+    if len(seq) < alg_cutoff:
+        # run easy version if length of sequence is below cutoff
 
-    picked = set() # combos already picked
+        # get all possible combinations
+        all_combos = list(all(seq, min))
 
-    for _ in range(limit):
-        # limit how many times we can grab a random combo before timeout
-        # TODO: adjust to weighted randomness to underweigh matched combos?
-        while tries < max_tries:
+        # number of total combos
+        max = len(all_combos)
+
+        # if no limit specified, limit is total number of possible combinations
+        if not limit or limit > max or limit < 1: limit = max
+
+        # get random indices by sampling without replacement
+        combos = random.sample(all_combos, limit)
+
+        yield from (c for c in combos)
+
+    else:
+        # large sequence: run complicated version
+
+        # TODO: random.sample has an option to weigh the items in the sequence
+        # so that might be usable to help balance the selection based on more
+        # frequent or less frequent selection of certain items
+
+        # set a safe limit
+        if not limit: limit = MAX_ITEM_LIMIT
+
+        # set tries counter to keep track of random attempts
+        tries = 0
+
+        # cache for generated sequences
+        combo_cache = set()
+
+        while tries < max_tries and len(combo_cache) < limit:
+            # increase tries counter
             tries += 1
 
-            # 1. get random size
-            size = random.randrange(min, max)
+            # get a sequence size
+            size = random.randrange(min, len(seq))
 
-            # 2. get random indexes without replacement
-            ixs = random.sample(range(max), size)
-            hixs = ''.join([str(i) for i in ixs]) # hashable for set
+            # get a sample of values
+            items = random.sample(seq, size)
 
-            # 3. unique combo
-            if hixs not in picked:
-                picked.add(hixs) # add to set of picked combos
-                combo = [seq[i] for i in ixs] # get the combo
+            # convert to tuple for testing and storage
+            titems = tuple(items)
 
-                if(type(combo) == str): ''.join(combo) # convert to string if appropriate
+            # if we haven't gotten combo before...
+            if titems not in combo_cache:
+                # store in combo cache
+                combo_cache.add(titems)
 
-                yield combo # yield the combo
-                tries = 0 # reset tries for next combo
+                # convert to string if appropriate
+                if type(seq) == str: items = ''.join(items)
+
+                # reset tries counter
+                tries = 0
+
+                # yield
+                yield items
 
 if __name__ == "__main__":
     print("Comboster is the ultimate in fun!")

@@ -15,6 +15,9 @@ class Testcomboster(unittest.TestCase):
         with self.subTest("Should contain 'bac'"):
             self.assertIn('bac', out)
 
+        with self.subTest("Should contain 'cba'"):
+            self.assertIn('cba', out)
+
         with self.subTest("Should contain 'ca'"):
             self.assertIn('ca', out)
 
@@ -22,6 +25,9 @@ class Testcomboster(unittest.TestCase):
             self.assertNotIn('a', out)
             self.assertNotIn('b', out)
             self.assertNotIn('c', out)
+
+        with self.subTest("4 item input should have 72 combos"):
+            self.assertEqual(len(list(comboster.all('ahoy'))), 72)
 
     def test_seq_all(self):
         for seq in self.seqs:
@@ -56,18 +62,23 @@ class Testcomboster(unittest.TestCase):
                 self.assertEqual(len(out), 1)
                 self.assertEqual(out[0], seq)
 
-    @unittest.skip("")
     def test_random_unique(self):
         seed = 1
 
-        for seq in self.seqs:
-            combos = []
-            for combo in comboster.random_unique(seq, seed=seed):
-                combos.append(combo)
+        for seq in self.seqs[:2]:
+            combos = list(comboster.random_unique(seq, seed=seed))
 
-            with self.subTest(seq = seq):
+            with self.subTest("Should have same length as all combos", seq = seq):
                 ncombos = len(list(comboster.all(seq)))
-                self.assertEqual(len(combos), ncombos)
+                self.assertEqual(len(list(combos)), ncombos)
+
+        for seq in self.seqs[2:]:
+            with self.subTest("Should have maximum length of 282240", seq = seq):
+                count = 0
+                for combo in comboster.random_unique(seq, seed=seed):
+                    count += 1
+
+                self.assertEqual(count, 100_000)
 
 if __name__ == '__main__':
     unittest.main()
