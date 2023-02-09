@@ -6,6 +6,23 @@ class Testcomboster(unittest.TestCase):
     def setUp(self):
         self.seqs = ['ahoy', 'ambling', 'ambitious', 'abracadabra']
 
+    def test_all(self):
+        out = list(comboster.all('abc'))
+
+        with self.subTest("Size should equal all possible combos"):
+            self.assertEqual(len(out), 12)
+
+        with self.subTest("Should contain 'bac'"):
+            self.assertIn('bac', out)
+
+        with self.subTest("Should contain 'ca'"):
+            self.assertIn('ca', out)
+
+        with self.subTest("Should not contain 'a', 'b', and 'c'"):
+            self.assertNotIn('a', out)
+            self.assertNotIn('b', out)
+            self.assertNotIn('c', out)
+
     def test_seq_all(self):
         for seq in self.seqs:
             out = list(comboster.seq_all(seq))
@@ -38,6 +55,19 @@ class Testcomboster(unittest.TestCase):
             with self.subTest(seq = seq, out = out):
                 self.assertEqual(len(out), 1)
                 self.assertEqual(out[0], seq)
+
+    @unittest.skip("")
+    def test_random_unique(self):
+        seed = 1
+
+        for seq in self.seqs:
+            combos = []
+            for combo in comboster.random_unique(seq, seed=seed):
+                combos.append(combo)
+
+            with self.subTest(seq = seq):
+                ncombos = len(list(comboster.all(seq)))
+                self.assertEqual(len(combos), ncombos)
 
 if __name__ == '__main__':
     unittest.main()
