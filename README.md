@@ -1,7 +1,16 @@
 # Comboster
 
 Python library for working with combinations. Very much a work in progress and
-not intended for widespread use.
+not intended (yet) for widespread use.
+
+## Usage
+
+Use it as a package:
+
+```
+import comboster as combos
+combos.all('abc')
+```
 
 ## Description
 
@@ -41,4 +50,7 @@ For example: `abc -> cb, acb, ba, ca, bac, ...`
 
 I needed combinations for another project, and didn't realize `itertools`
 provides functions for working with combinations. But on closer inspection,
-those functions were too limited for my needs so I'm still here.
+those functions were too limited for my needs.
+For example, `itertools.permutations('abc')` will only return 3-item
+permutations (6 results), where I'm looking for all permutations (12 results).
+So I'm still here.
