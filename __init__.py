@@ -1,1 +1,1 @@
-from .comboster import comboster
+from .comboster import *
